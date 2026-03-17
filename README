@@ -1,0 +1,32 @@
+# Shoot Enemies Game
+
+A fun arcade-style game where you shoot and destroy enemies.
+
+## Features
+
+- Action-packed gameplay
+- Multiple enemy types
+- Score tracking
+- Increasing difficulty levels
+
+## Installation
+
+### Local development, testing and fun
+1. Clone the repository
+2. Install pygame. Use `pip install pygame` or `python3 -m pip install pygame`    
+3. Run the game: `python main.py`
+
+### Upload to Google Cloud so anyone can play on a brower
+1. Setup a Google account if you don't already have one. Billing may or may not need to be enabled. The game is so tiny that it won't really generate charges. It will be pennies even if it would.
+2. Argg.. I forgot and couldn't find the history. I will figure that out and update the steps here.
+
+## Controls
+
+- **Arrow Keys** - Move
+- **Spacebar** - Shoot
+- **ESC** - Pause/Menu  (NOT IMPLEMENTED)
+
+## Gameplay
+
+Destroy all enemies to advance to the next level. Each level introduces faster and more numerous enemies. Collect power-ups to enhance your weapons. (WARNING:  Levels, power-ups and different weapons are NOT yet implemented.)
+
