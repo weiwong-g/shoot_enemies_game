@@ -54,17 +54,51 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (CHARACTER_SIZE, CHARACTER_SIZE))
         self.rect = self.image.get_rect(center=(400, 550))
         self.ticks = pygame.time.get_ticks()
-    
+
+    def _shoot(self):
+        # This is a hack to avoid shooting too many poops.
+        # The problem: The event loop in main tick 60 times per second. So update() is called
+        # 60 times per second. A key or fingermotion can easily last more than 1/60th of a second.
+        # In that case multiple poops are fired for just a single key press or finger motion, which
+        # is not what we want. So we add a cooldown of 5 ticks
+        # Alternatively, we can have a variable to track the last timestampe of fire and adjsut.
+        # We have a similar problem for playing sounds when poops hit the enemies, I didn't do anything
+        # to fix that so the sounds effect is werid :) Anyone reading this can try to fix that as an
+        # exercise! Hint: you can add a timestamp to the Enemy class and check the cooldown before
+        # playing the sound. Advanced hint: we can also create a `lock` for sounds or shooting poops,
+        # the first call would hold the lock and perform the action. The lock is released after a we
+        # know that the action is done. That way will avoid duplicated actions. Locking is a common
+        # technique in programming, especially important in multi-threading and asynchronous programming.
+        if pygame.time.get_ticks() - self.ticks > 5 * GAME_SPEED_TICKS:
+            self.ticks = pygame.time.get_ticks()
+            Poop(self.rect.x + CHARACTER_SIZE / 2, self.rect.y).add(poops)
+
+
     def update(self):
+        # Handle keyboard input for movement and firing.
+        # For a phone with a touch screen no keys will be pressed and the code is a no-op.
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]: self.rect.x -= 5
         if keys[pygame.K_RIGHT]: self.rect.x += 5
-        if keys[pygame.K_SPACE]:
-            # Slow down bullet firing for more fun
-            if pygame.time.get_ticks() - self.ticks > 5 * GAME_SPEED_TICKS:
-                self.ticks = pygame.time.get_ticks()
-                Poop(self.rect.x + CHARACTER_SIZE / 2, self.rect.y).add(poops)
-    
+        if keys[pygame.K_SPACE]: self._shoot()
+        
+        # For a touch screen, we should be able to detect finger movement and move the player
+        # accordingly. This code is a no-op for a device without a touch screen.
+        # Consume the list of fingermotion events but only act on the last one. In theory 
+        finger_touches = pygame.event.get(eventtype=pygame.FINGERMOTION)
+        if len(finger_touches) > 0:
+        # finger_touches = pygame.event.get(eventtype=pygame.FINGERDOWN)
+        # if len(finger_touches) > 0:
+            event = finger_touches[-1]
+            # event.x is between 0 and 1, representing the relative position of the finger
+            # on the screen.
+            self.rect.x = event.x * SCREEN_WIDTH
+            # No key for firing on a touch screen. Change to shooting on any movements.
+            self._shoot()
+
+        # Keep player within screen bounds
+        self.rect.clamp_ip(screen.get_rect())
+        
     def hit(self):
         ''' This method is called by in the event loop when the player gets hit by an enemy.
 
@@ -113,10 +147,10 @@ async def main():
     # variable, such as a pause menu or a game over screen.
     running = True
     while running:
-        # Event Handling
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        # Only check for QUIT event here to avoid consuming other events that are handled
+        # elsewhere, such as key presses and finger motions.
+        if pygame.event.get(eventtype=pygame.QUIT):
+            running = False
         
         # random.random() generates a random number between 0 and 1, so this means
         # we have a 20% chance to spawn an enemy every frame.
